@@ -1,0 +1,96 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+pd.set_option('display.max_columns', 10)
+pd.set_option('display.max_rows', 20)
+pd.set_option('display.max_colwidth', 20)
+
+
+app_df=pd.read_csv("E:\ANALYTICS\PYTHON\Sales\competitive-data-science-predict-future-sales\Data\\sales_train_v2.csv")
+app_df_test=pd.read_csv("E:\ANALYTICS\PYTHON\Sales\competitive-data-science-predict-future-sales\Data\\test.csv")
+
+app_df_temp=app_df[0:50000]
+
+
+
+#%% EDA - Exploratory Data Analysis
+
+
+type(app_df)
+
+app_df.count()
+# Each column has 2935849 values, none missing
+app_df[app_df_temp.isnull()].count()
+# None missing, although above statement is sufficient to determine that
+type(app_df.columns)
+#Column names
+
+type(app_df.columns.values)
+#column names as an array
+app_df['date'].nunique()
+app_df['date'].unique()
+#date has 1034 unique values which is close to 3 years. Given Data is from 2013-15   
+app_df['shop_id'].nunique()
+#60 unique shops
+app_df['item_id'].nunique()
+#21807 unique items
+
+item=app_df.describe()
+#Observation - Items count day has -ve values that implies that these items are returned
+#Item price is also -ve which might be incorrect/data missing. We can check how many of 
+#rows have such values.
+app_df[app_df['item_price']==-1]
+#only 1 row, we can drop this.
+app_df=app_df.drop(index=484683)
+#Now dataframe has 2935848 rows
+#reset index
+app_df[app_df.index==484683]
+app_df.reset_index()
+#We'll keep the new column'index' for a while and remove later if causing issues
+
+#Also check for 0
+app_df[app_df['item_price']==0]
+#none are zero
+
+app_df.info()
+# Date, shopid and itemid are integers whereas price and count day are float
+
+app_df[app_df['date']=='01.01.2013']
+app_df[app_df['shop_id']==1]
+
+sns.kdeplot(data=app_df['item_id'],data2=app_df['shop_id'],shade=True)
+sns.kdeplot(data=app_df_temp['shop_id'],data2=app_df_temp['item_id'],shade=False)
+
+sns.kdeplot(app_df_temp['shop_id'])
+sns.kdeplot(app_df_temp['item_id'])
+sns.kdeplot(app_df_temp['date'])
+sns.kdeplot(app_df_temp['date_block_num'])
+
+head=app_df.head()
+
+#%% We'll try to group the data based on shop_id
+app_grp=app_df.groupby(['shop_id'])
+app_grp.first()
+app_grp.get_group(2)
+
+
+
+app_grp=app_df.groupby(['shop_id','item_id'])
+app_grp.first()
+app_grp.get_group((2,30))
+
+
+# I want to group items by date block
+app_grp=app_df.groupby(['date_block_num', 'item_id'])
+app_grp.get_group((1,30))
+type(app_grp.get_group((1,30)))
+app_grp.get_group((1,30))['item_cnt_day'].sum()
+app_grp.get_group((2,30))['item_cnt_day'].sum()
+app_grp.get_group((3,30))['item_cnt_day'].sum()
+app_grp.get_group((4,30))['item_cnt_day'].sum()
+#Item ID 30 sales in month1=861, mnth2=508,mth3=130,mnth4=50
+
+#Similarly we can create a table for each itemid and month 
+
+#%%
